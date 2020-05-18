@@ -4,6 +4,8 @@ from wtforms import StringField, SelectField, SelectMultipleField, DateTimeField
 from wtforms.validators import ValidationError, Optional, DataRequired, AnyOf, URL, Length
 from enums import State, Genre
 
+
+
 def anyof_for_multiple_field(values):
   message = 'Invalid value, must be one of: {0}.'.format( ','.join(values) )
 
@@ -17,6 +19,9 @@ def anyof_for_multiple_field(values):
       raise ValidationError(message)
 
   return _validate
+
+
+
 
 class ShowForm(Form):
     # IDEA: add a number validation to artist_id and venue_id
@@ -33,6 +38,17 @@ class ShowForm(Form):
     )
 
 class VenueForm(Form):
+
+    def validate_phone(self, phone):
+        if not re.search(r"^[0-9]{3}-[0-9]{3}-[0-9]{4}$", field.data):
+            raise ValidationError("Invalid phone number.")
+
+    def validate_genres(self, genres):
+        genres_values = [choice[1] for choice in genres_choices]
+        for value in field.data:
+            if value not in genres_values:
+                raise ValidationError('Invalid genres value.')
+
     name = StringField(
         'name', validators=[DataRequired(),Length(-1,120)]
     )
@@ -47,9 +63,13 @@ class VenueForm(Form):
         'address', validators=[DataRequired(),Length(-1,120)]
     )
     # IDEA: add a phone number validator
+
+
     phone = StringField(
-        'phone'
+        'phone' , validators=[DataRequired()]
     )
+
+
     image_link = StringField(
         'image_link', validators=[Length(-1,500),URL(),Optional()]
     )
@@ -57,6 +77,7 @@ class VenueForm(Form):
         'genres', validators=[DataRequired(), anyof_for_multiple_field( [ choice.value for choice in Genre ] )],
         choices=Genre.choices()
     )
+
     facebook_link = StringField(
         'facebook_link', validators=[Length(-1,120),URL(),Optional()]
     )
@@ -74,7 +95,7 @@ class ArtistForm(Form):
     )
     # IDEA: add a phone number validator
     phone = StringField(
-        'phone'
+        'phone', validators=[DataRequired()]
     )
     image_link = StringField(
         'image_link', validators=[Length(-1,500),URL(),Optional()]
